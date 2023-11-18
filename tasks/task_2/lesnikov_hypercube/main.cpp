@@ -30,10 +30,7 @@ TEST(dummy, test_5) {
 
 
 int main(int argc, char** argv) {
-    boost::mpi::environment env(argc, argv, boost::mpi::threading::multiple);
-    if (env.thread_level() < boost::mpi::threading::multiple) {
-        env.abort(-1);
-    }
+    boost::mpi::environment env(argc, argv);
     boost::mpi::communicator world;
     ::testing::InitGoogleTest(&argc, argv);
     ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
@@ -41,6 +38,21 @@ int main(int argc, char** argv) {
         delete listeners.Release(listeners.default_result_printer());
     }
     // return RUN_ALL_TESTS();
+
+    int value = 0;
+
+    if (world.rank() == 0) {
+        value = 10;
+        sendRecvData<int>(0, 3, 0, value);
+    }
+
+    else {
+        sendRecvData<int>(0, 3, 0, value);
+
+        if (world.rank() == 3) {
+            std::cout << "Recieved in " << world.rank() << ", value: " << value << std::endl;
+        }
+    }
 
     return 0;
 }

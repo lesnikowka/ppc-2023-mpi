@@ -29,6 +29,14 @@ void visualizeQ(std::queue<int> q) {
     std::cout << std::endl;
 }
 
+void visualizeV(const std::vector<int>& v) {
+    for (int e : v) {
+        std::cout << e << " ";
+    }
+
+    std::cout << std::endl;
+}
+
 bool is2Degree(int n) {
     int copy_n = n;
 
