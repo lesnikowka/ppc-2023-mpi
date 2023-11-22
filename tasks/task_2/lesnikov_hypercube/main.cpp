@@ -8,24 +8,94 @@
 #include "./hypercube.h"
 
 
-TEST(dummy, test_1) {
-    ASSERT_EQ(1, 1);
+TEST(Hypercube, Send_To_Neighbour_Straight) {
+    boost::mpi::communicator world;
+
+    std::vector<int> expected = {1, 2, 3};
+
+    if (is2Degree(world.size())) {
+        std::vector<int> data;
+
+        if (world.rank() == 0) {
+            data = {1, 2, 3};
+        }
+
+        sendRecvData(0, 1, 0, &data);
+
+        if (world.rank() == 1) {
+            EXPECT_EQ(data, expected);
+        }
+    }
 }
 
-TEST(dummy, test_2) {
-    ASSERT_EQ(1, 1);
+TEST(Hypercube, Send_To_Neighbour_Back) {
+    boost::mpi::communicator world;
+
+    std::vector<int> expected = {1, 2, 3};
+
+    if (is2Degree(world.size())) {
+        std::vector<int> data;
+
+        if (world.rank() == 1) {
+            data = {1, 2, 3};
+        }
+
+        sendRecvData(1, 0, 0, &data);
+
+        if (world.rank() == 0) {
+            EXPECT_EQ(data, expected);
+        }
+    }
 }
 
-TEST(dummy, test_3) {
-    ASSERT_EQ(1, 1);
+TEST(Hypercube, Send_To_Farthest_Straight) {
+    boost::mpi::communicator world;
+
+    std::vector<int> expected = {1, 2, 3};
+
+    if (is2Degree(world.size())) {
+        std::vector<int> data;
+
+        if (world.rank() == 0) {
+            data = {1, 2, 3};
+        }
+
+        sendRecvData(0, world.size() - 1, 0, &data);
+
+        if (world.rank() == world.size() - 1) {
+            EXPECT_EQ(data, expected);
+        }
+    }
 }
 
-TEST(dummy, test_4) {
-    ASSERT_EQ(1, 1);
+TEST(Hypercube, Send_To_Farthest_Back) {
+    boost::mpi::communicator world;
+
+    std::vector<int> expected = {1, 2, 3};
+
+    if (is2Degree(world.size())) {
+        std::vector<int> data;
+
+        if (world.rank() == world.size() - 1) {
+            data = {1, 2, 3};
+        }
+
+        sendRecvData(world.size() - 1, 0, 0, &data);
+
+        if (world.rank() == 0) {
+            EXPECT_EQ(data, expected);
+        }
+    }
 }
 
-TEST(dummy, test_5) {
-    ASSERT_EQ(1, 1);
+TEST(Hypercube, Throw_If_Incorrect_World_Size) {
+    boost::mpi::communicator world;
+
+    int a = 1;
+
+    if (world.size() != 1 && !is2Degree(world.size())) {
+        ASSERT_ANY_THROW(sendRecvData(0, 1, 0, &a));
+    }
 }
 
 
@@ -37,23 +107,6 @@ int main(int argc, char** argv) {
     if (world.rank() != 0) {
         delete listeners.Release(listeners.default_result_printer());
     }
-    // return RUN_ALL_TESTS();
-
-    int value = 0;
-
-    if (world.rank() == 0) {
-        value = 10;
-        sendRecvData<int>(0, 3, 0, value);
-    }
-
-    else {
-        sendRecvData<int>(0, 3, 0, value);
-
-        if (world.rank() == 3) {
-            std::cout << "Recieved in " << world.rank() << ", value: " << value << std::endl;
-        }
-    }
-
-    return 0;
+    return RUN_ALL_TESTS();
 }
 
