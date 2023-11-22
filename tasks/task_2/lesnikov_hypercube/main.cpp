@@ -98,7 +98,6 @@ TEST(Hypercube, Throw_If_Incorrect_World_Size) {
     }
 }
 
-
 int main(int argc, char** argv) {
     boost::mpi::environment env(argc, argv);
     boost::mpi::communicator world;
