@@ -150,6 +150,13 @@ double getMinParallel(std::function<double(double)> f, double leftBound,
         }
         
         if (world.rank() >= usefulWorldSize) {
+            if (usefulWorldSize != 1) {
+                double dummy = 0;
+                double dummy2 = 0;
+                dummy = std::numeric_limits<double>::lowest();
+                boost::mpi::reduce(world, dummy, dummy2, boost::mpi::maximum<double>(), 0);
+                boost::mpi::broadcast(world, dummy, 0);
+            }
             continue;
         }
 
@@ -162,13 +169,13 @@ double getMinParallel(std::function<double(double)> f, double leftBound,
 
             printf("remain %d part_s %d x_size %d\n", remainder, part_size, (int)X.size());
 
-            int not_end = static_cast<int>(world.size() != 1);
+            int not_end = static_cast<int>(usefulWorldSize != 1);
             loc_X = std::vector<double>(X.begin(), X.begin() + part_size + remainder + not_end);
 
-            printf("locX root size: %d\n",static_cast<int>(loc_X.size()));
+            printf("locX root size: %d USEFUL WORLD SIZE %d\n",static_cast<int>(loc_X.size()), (int)usefulWorldSize);
 
             for (int j = 1; j < usefulWorldSize; j++) {
-                not_end = static_cast<int>(j != world.size() - 1);
+                not_end = static_cast<int>(j != usefulWorldSize - 1);
                 printf("i=%d start=%d end=%d\n", j, remainder + part_size * j, remainder + part_size * (j + 1) + not_end);
                 std::vector<double> temp(X.begin() + remainder + part_size * j, X.begin() + remainder + part_size * (j + 1) + not_end);
                 size_t old_temp_size = temp.size();
@@ -185,6 +192,17 @@ double getMinParallel(std::function<double(double)> f, double leftBound,
         }
 
         if (loc_X.size() < 2) {
+            printf("PROCESS I=%d usefulsize=%d locxsize=%d\n", (int)world.rank(), (int)usefulWorldSize, (int)loc_X.size());
+            if (loc_X.size() == 1) {
+                usefulWorldSize--;
+            }
+            if (usefulWorldSize != 1) {
+                double dummy = 0;
+                double dummy2 = 0;
+                dummy = std::numeric_limits<double>::lowest();
+                boost::mpi::reduce(world, dummy, dummy2, boost::mpi::maximum<double>(), 0);
+                boost::mpi::broadcast(world, dummy, 0);
+            }
             continue;
         }
 
