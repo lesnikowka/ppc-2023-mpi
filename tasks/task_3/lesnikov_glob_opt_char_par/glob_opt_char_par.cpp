@@ -119,66 +119,101 @@ double getMinParallel(std::function<double(double)> f, double leftBound,
     
     boost::mpi::communicator world;
 
+    printf("world_size: %d\n\n", static_cast<int>(world.size()));
+
 	std::vector<double> X;
     std::vector<double> loc_X;
-    if (world.size() == 0) {
+    if (world.rank() == 0) {
         X = { leftBound, rightBound };
     }
 
 	double lastX = 0;
 
 	for (int i = 0; i < maxIterations; i++) {
-        int usefulWorldSize;
+        int usefulWorldSize = 0;
         if (world.rank() == 0) {
             usefulWorldSize = std::min(static_cast<int>(world.size()), static_cast<int>(X.size()));
         }
-        boost::mpi::broadcast(world, usefulWorldSize, 0);
-
+        if (world.size() != 1) {
+            boost::mpi::broadcast(world, usefulWorldSize, 0);
+        }
+        
         if (world.rank() >= usefulWorldSize) {
             continue;
         }
 
-        int part_size; 
-        int remainder;
+        int part_size = 0; 
+        int remainder = 0;
 
         if (world.rank() == 0) { 
             remainder = X.size() % usefulWorldSize; 
             part_size = X.size() / usefulWorldSize;
 
-            loc_X.resize(part_size + remainder);
+            printf("remain %d part_s %d x_size %d\n", remainder, part_size, (int)X.size());
+
+            int not_end = static_cast<int>(i != world.size() - 1);
+            loc_X = std::vector<double>(X.begin(), X.begin() + part_size + remainder + not_end);
+
+            printf("locX root size: %d\n",static_cast<int>(loc_X.size()));
 
             for (int i = 1; i < usefulWorldSize; i++) {
-                int not_end = static_cast<int>(i != world.size() - 1);
+                not_end = static_cast<int>(i != world.size() - 1);
+                printf("i=%d start=%d end=%d\n", i, remainder + part_size * i, remainder + part_size * (i + 1) + not_end);
                 std::vector<double> temp(X.begin() + remainder + part_size * i, X.begin() + remainder + part_size * (i + 1) + not_end);
+                size_t old_temp_size = temp.size();
                 world.send(i, 0, temp);
+                if (old_temp_size < 2) {
+                    usefulWorldSize--;
+                    break;
+                }
             }
+            
         }
         else {
             world.recv(0, 0, loc_X);
         }
 
-		double loc_M = findM(loc_X, f);
-        double M;
-        double m;
+        if (loc_X.size() < 2) {
+            continue;
+        }
 
-        boost::mpi::reduce(world, loc_M, M, boost::mpi::maximum<double>(), 0);
+        printf("STEP OVER POINT 1\n");
+
+		double loc_M = findM(loc_X, f);
+        double M = loc_M;
+        double m = 0;
+
+        printf("STEP OVER POINT 2\n");
+
+        if (world.size() != 1) {
+            boost::mpi::reduce(world, loc_M, M, boost::mpi::maximum<double>(), 0);
+        }
+        
+        printf("STEP OVER POINT 3\n");
 
 		if (world.rank() == 0) {
             m = getm(M, r);
         }
         
-        boost::mpi::broadcast(world, m, 0);
+        if (world.size() != 1) {
+            boost::mpi::broadcast(world, m, 0);
+        }
+
+        printf("STEP OVER POINT 4 PROCESS I=%d\n", (int)world.rank());
         
 		std::vector<double> R = getR(m, loc_X, f);
 		int maxRindex = getMax(R);
+        printf("maxRindex=%d Rsize=%d\n", maxRindex, (int)R.size());
         double maxRValue = R[maxRindex];
+
+        printf("STEP OVER POINT 5 PROCESS I=%d\n", (int)world.rank());
 
         if (world.rank() == 0) {
             for (int i = 1; i < usefulWorldSize; i++) {
-                int temp_index;
+                int temp_index = 0;
                 world.recv(i, 0, temp_index);
                 int realIndex = temp_index + remainder + i * part_size;
-                double locR;
+                double locR = 0;
                 world.recv(i, 0, locR);
 
                 if (maxRValue < locR) {
