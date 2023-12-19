@@ -91,6 +91,87 @@ double getMinSequential(std::function<double(double)> f, double leftBound,
 	return lastX;
 }
 
+double getMinParallel(std::function<double(double)> f, double leftBound,
+	double rightBound, double eps, int maxIterations, double r) {
+    
+    boost::mpi::communicator world;
+
+	std::vector<double> X;
+    std::vector<double> loc_X;
+    if (world.size() == 0) {
+        X = { leftBound, rightBound };
+    }
+
+	double lastX = 0;
+
+	for (int i = 0; i < maxIterations; i++) {
+        int usefulWorldSize;
+        if (world.rank == 0) {
+            usefulWorldSize = std::min(world.size(), X.size());
+        }
+        boost::mpi::broadcast(world, usefulWorldSize, 0);
+
+        if (world.rank() >= usefulWorldSize) {
+            continue;
+        }
+
+        const int part_size; 
+        const int remainder;
+
+        if (world.rank() == 0) { 
+            remainder = X.size() % usefulWorldSize; 
+            part_size = X.size() / usefulWorldSize;
+
+            loc_X.resize(part_size + remainder);
+
+            for (int i = 1; i < world.size(); i++)
+                int not_end = static_cast<int>(i == world.size() - 1)
+                std::vector<double> temp(X.begin() + remainder + part_size * i, X.begin() + remainder + part_size * (i + 1) + not_end);
+                world.send(i, 0, temp);
+            }
+        }
+        else {
+            world.recv(0, 0, loc_X);
+        }
+
+		double loc_M = findM(loc_X, f);
+        double M;
+        double m;
+
+        boost::mpi::reduce(world, loc_M, boost::mpi::maximum<double>(), M, 0);
+
+		if (world.rank() == 0) {
+            m = getm(M, r);
+        }
+        
+        boost::mpi::broadcast(world, m, 0);
+        
+		std::vector<double> R = getR(m, X, f);
+		int maxRindex = getMax(R);
+
+		double xk_1 = getXk_1(X[maxRindex], X[maxRindex + 1], r, m, f);
+
+		if (xk_1 < leftBound) {
+			xk_1 = leftBound;
+		}
+		else if (xk_1 > rightBound) {
+			xk_1 = rightBound;
+		}
+
+		lastX = xk_1;
+
+
+		if (std::abs(xk_1 - X[maxRindex]) < eps) {
+			return xk_1;
+		}
+
+		auto xk_1Place = std::upper_bound(X.begin(), X.end(), xk_1);
+
+		X.insert(xk_1Place, xk_1);
+	}
+
+	return lastX;
+}
 
 
 
