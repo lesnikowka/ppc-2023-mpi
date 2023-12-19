@@ -13,7 +13,8 @@ double getXk_1(double xt_1, double xt, double r, double m, std::function<double(
 int getMax(const std::vector<double>& v);
 double getMinSequential(std::function<double(double)> f, double leftBound,
 	double rightBound, double eps, int maxIterations, double r); 
-
+double getMinParallel(std::function<double(double)> f, double leftBound,
+	double rightBound, double eps, int maxIterations, double r); 
 
 
 

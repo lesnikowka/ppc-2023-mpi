@@ -124,8 +124,8 @@ double getMinParallel(std::function<double(double)> f, double leftBound,
 
             loc_X.resize(part_size + remainder);
 
-            for (int i = 1; i < world.size(); i++)
-                int not_end = static_cast<int>(i == world.size() - 1)
+            for (int i = 1; i < usefulWorldSize; i++) {
+                int not_end = static_cast<int>(i != world.size() - 1);
                 std::vector<double> temp(X.begin() + remainder + part_size * i, X.begin() + remainder + part_size * (i + 1) + not_end);
                 world.send(i, 0, temp);
             }
@@ -146,28 +146,47 @@ double getMinParallel(std::function<double(double)> f, double leftBound,
         
         boost::mpi::broadcast(world, m, 0);
         
-		std::vector<double> R = getR(m, X, f);
+		std::vector<double> R = getR(m, loc_X, f);
 		int maxRindex = getMax(R);
+        double maxRValue = R[maxRindex];
 
-		double xk_1 = getXk_1(X[maxRindex], X[maxRindex + 1], r, m, f);
+        if (world.rank() == 0) {
+            for (int i = 1; i < usefulWorldSize; i++) {
+                int temp_index;
+                world.recv(i, 0, temp_index);
+                int realIndex = temp_index + remainder + i * part_size;
+                double locR;
+                world.recv(i, 0, locR);
 
-		if (xk_1 < leftBound) {
-			xk_1 = leftBound;
-		}
-		else if (xk_1 > rightBound) {
-			xk_1 = rightBound;
-		}
+                if (maxRValue < locR) {
+                    locR = maxRValue;
+                    maxRindex = real_index;
+                }
+            }
 
-		lastX = xk_1;
+            double xk_1 = getXk_1(X[maxRindex], X[maxRindex + 1], r, m, f);
 
+            if (xk_1 < leftBound) {
+                xk_1 = leftBound;
+            }
+            else if (xk_1 > rightBound) {
+                xk_1 = rightBound;
+            }
 
-		if (std::abs(xk_1 - X[maxRindex]) < eps) {
-			return xk_1;
-		}
+            lastX = xk_1;
 
-		auto xk_1Place = std::upper_bound(X.begin(), X.end(), xk_1);
+            if (std::abs(xk_1 - X[maxRindex]) < eps) {
+                return xk_1;
+            }
 
-		X.insert(xk_1Place, xk_1);
+            auto xk_1Place = std::upper_bound(X.begin(), X.end(), xk_1);
+
+            X.insert(xk_1Place, xk_1);
+        }
+        else {
+            world.send(0, 0, maxRindex);
+            world.send(0, 0, maxRValue);
+        }
 	}
 
 	return lastX;
