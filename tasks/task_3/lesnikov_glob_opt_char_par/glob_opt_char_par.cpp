@@ -5,6 +5,7 @@
 #include <functional>
 #include <iostream>
 #include <utility>
+#include <cmath>
 #include <vector>
 #include <string>
 #include <random>
@@ -14,10 +15,13 @@
 
 
 
+
 double findM(const std::vector<double>& X, const std::function<double(double)>& f) {
 	double M = 0;
 	for (int i = 0; i < X.size() - 1; i++) {
-		M = std::max(M, std::abs(f(X[i]) - f(X[i + 1])) / std::abs(X[i + 1] - X[i]));
+	    double abs_ = std::abs(f(X[i]) - f(X[i + 1]));
+	    double abs_x = std::abs(X[i + 1] - X[i]);
+		M = std::max(M, abs_ / abs_x);
 	}
 	return M;
 }
@@ -32,8 +36,10 @@ double getm(double M, double r) {
 std::vector<double> getR(double m, const std::vector<double>& X, std::function<double(double)> f) {
 	std::vector<double> R(X.size() - 1);
 	for (int i = 0; i < X.size() - 1; i++) {
-		R[i] = m * abs(X[i + 1] - X[i]) + (f(X[i]) - f(X[i + 1])) * (f(X[i]) - f(X[i + 1]))
-			/ m / abs(X[i + 1] - X[i]) - 2 * (f(X[i]) + f(X[i + 1]));
+	    double abs_x = std::abs(X[i + 1] - X[i]);
+	    double sq = (f(X[i]) - f(X[i + 1])) * (f(X[i]) - f(X[i + 1]));
+	    double fsum = (f(X[i]) + f(X[i + 1]));
+		R[i] = m * abs_x + sq / m / abs_x - 2 * fsum;
 	}
 	return R;
 }
@@ -41,7 +47,19 @@ std::vector<double> getR(double m, const std::vector<double>& X, std::function<d
 double getXk_1(double xt_1, double xt, double r,
 	double m, std::function<double(double)> f) {
 
-	return (xt_1 + xt) / 2 - ((f(xt) - f(xt_1)) > 0 ? 1 : -1) * r / m * std::abs(f(xt) - f(xt_1)) / (2*r);
+	int sign;
+	if (f(xt) - f(xt_1) > 0) {
+		sign = 1;
+	}
+	else {
+		sign = -1;
+	}
+
+	double mean = ((xt_1 + xt) / 2);
+
+	double abs_ = std::abs(f(xt) - f(xt_1));
+
+	return mean - sign * abs_ / m / 2;
 }
 
 int getMax(const std::vector<double>& v) {
@@ -78,8 +96,12 @@ double getMinSequential(std::function<double(double)> f, double leftBound,
 
 		lastX = xk_1;
 
+		//std::cout << "i=" << i << " xk=" << xk_1 << " M=" << M << " m=" << m << " maxRindex=" << maxRindex
+		//<< "x: " << X[maxRindex] << "\n";
 
-		if (std::abs(xk_1 - X[maxRindex]) < eps) {
+		double abs_ = std::abs(xk_1 - X[maxRindex]);
+
+		if (abs_ < eps) {
 			return xk_1;
 		}
 
@@ -90,6 +112,7 @@ double getMinSequential(std::function<double(double)> f, double leftBound,
 
 	return lastX;
 }
+
 
 double getMinParallel(std::function<double(double)> f, double leftBound,
 	double rightBound, double eps, int maxIterations, double r) {
@@ -106,8 +129,8 @@ double getMinParallel(std::function<double(double)> f, double leftBound,
 
 	for (int i = 0; i < maxIterations; i++) {
         int usefulWorldSize;
-        if (world.rank == 0) {
-            usefulWorldSize = std::min(world.size(), X.size());
+        if (world.rank() == 0) {
+            usefulWorldSize = std::min(static_cast<int>(world.size()), static_cast<int>(X.size()));
         }
         boost::mpi::broadcast(world, usefulWorldSize, 0);
 
@@ -115,8 +138,8 @@ double getMinParallel(std::function<double(double)> f, double leftBound,
             continue;
         }
 
-        const int part_size; 
-        const int remainder;
+        int part_size; 
+        int remainder;
 
         if (world.rank() == 0) { 
             remainder = X.size() % usefulWorldSize; 
@@ -138,7 +161,7 @@ double getMinParallel(std::function<double(double)> f, double leftBound,
         double M;
         double m;
 
-        boost::mpi::reduce(world, loc_M, boost::mpi::maximum<double>(), M, 0);
+        boost::mpi::reduce(world, loc_M, M, boost::mpi::maximum<double>(), 0);
 
 		if (world.rank() == 0) {
             m = getm(M, r);
@@ -160,7 +183,7 @@ double getMinParallel(std::function<double(double)> f, double leftBound,
 
                 if (maxRValue < locR) {
                     locR = maxRValue;
-                    maxRindex = real_index;
+                    maxRindex = realIndex;
                 }
             }
 
