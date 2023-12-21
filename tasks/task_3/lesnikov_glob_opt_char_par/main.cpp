@@ -1,10 +1,11 @@
 // Copyright 2023 Lesnikov Nikita
 
+#include <cmath>
 #include <gtest/gtest.h>
 #include <boost/mpi/communicator.hpp>
 #include <boost/mpi/environment.hpp>
 #include "task_3/lesnikov_glob_opt_char_par/glob_opt_char_par.h"
-#include <cmath>
+
 
 TEST(lesnikov_glob_opt_sequential, test_func_1) {
     std::function<double(double)> f = [](double x) {return x / 2 + std::sin(x);};

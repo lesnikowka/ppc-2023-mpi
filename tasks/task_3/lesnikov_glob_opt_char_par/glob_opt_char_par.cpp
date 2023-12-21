@@ -169,8 +169,7 @@ double getMinParallel(std::function<double(double)> f, double leftBound,
                     usefulWorldSize--;
                 }
             }
-        }
-        else {
+        } else {
             world.recv(0, 0, loc_X);
             int dd = 0;
             world.send(0, 0, dd);
@@ -202,8 +201,7 @@ double getMinParallel(std::function<double(double)> f, double leftBound,
             for (int j = 1; j < usefulWorldSize; j++) {
                 world.send(j, 0, M);
             }
-        }
-        else {
+        } else {
             world.recv(0, 0, M);
         }
 
@@ -252,8 +250,7 @@ double getMinParallel(std::function<double(double)> f, double leftBound,
             auto xk_1Place = std::upper_bound(X.begin(), X.end(), xk_1);
 
             X.insert(xk_1Place, xk_1);
-        }
-        else {
+        } else {
             world.send(0, 0, maxRindex);
             world.send(0, 0, maxRValue);
         }
