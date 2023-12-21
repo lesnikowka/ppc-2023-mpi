@@ -44,7 +44,6 @@ std::vector<double> getR(double m, const std::vector<double>& X, std::function<d
 
 double getXk_1(double xt_1, double xt, double r,
     double m, std::function<double(double)> f) {
-
     int sign;
     if (f(xt) - f(xt_1) > 0) {
         sign = 1;
