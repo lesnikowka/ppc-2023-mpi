@@ -7,45 +7,60 @@
 
 
 TEST(lesnikov_glob_opt_sequential, test_func_1) {
+    boost::mpi::communicator world;
     auto f = [](double x) {return x / 2 + std::sin(x);};
 
     double val = getMinSequential(f, 1.5, 6, 0.001, 200, 3);
 
-    EXPECT_TRUE(std::abs(4.189023 - val) < 0.01);
+    if (world.rank() == 0) {
+        EXPECT_TRUE(std::abs(4.189023 - val) < 0.01);
+    }
 }
 
 TEST(lesnikov_glob_opt_sequential, test_func_2) {
+    boost::mpi::communicator world;
     auto f = [](double x) {return x * x;};
 
     double val = getMinSequential(f, -3, 3, 0.001, 200, 3);
 
-    EXPECT_TRUE(std::abs(0 - val) < 0.01);
+    if (world.rank() == 0) {
+        EXPECT_TRUE(std::abs(0 - val) < 0.01);
+    }
 }
 
 TEST(lesnikov_glob_opt_sequential, test_func_3) {
+    boost::mpi::communicator world;
     auto f = [](double x) {return x / 2 + std::sin(x);};
 
     double val = getMinSequential(f, 0, 6, 0.001, 200, 3);
 
-    EXPECT_TRUE(std::abs(0 - val) < 0.01);
+    if (world.rank() == 0) {
+        EXPECT_TRUE(std::abs(0 - val) < 0.01);
+    }
 }
 
 TEST(lesnikov_glob_opt_parallel, test_func_1) {
+    boost::mpi::communicator world;
     auto f = [](double x) {return x / 2 + std::sin(x);};
 
     double val = getMinSequential(f, 1.5, 6, 0.001, 200, 3);
     double val2 = getMinParallel(f, 1.5, 6, 0.001, 200, 3);
 
-    EXPECT_TRUE(std::abs(val2 - val) < 0.01);
+    if (world.rank() == 0) {
+        EXPECT_TRUE(std::abs(val2 - val) < 0.01);
+    }
 }
 
 TEST(lesnikov_glob_opt_parallel, test_func_3) {
+    boost::mpi::communicator world;
     auto f = [](double x) {return x / 2 + std::sin(x);};
 
     double val = getMinSequential(f, 0, 6, 0.001, 200, 3);
     double val2 = getMinSequential(f, 0, 6, 0.001, 200, 3);
 
-    EXPECT_TRUE(std::abs(val2 - val) < 0.01);
+    if (world.rank() == 0) {
+        EXPECT_TRUE(std::abs(val2 - val) < 0.01);
+    }
 }
 
 
