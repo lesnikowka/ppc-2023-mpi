@@ -2,14 +2,8 @@
 
 #include "task_3/lesnikov_glob_opt_char_par/glob_opt_char_par.h"
 
-#include <cmath>
-#include <functional>
 #include <iostream>
-#include <utility>
-#include <vector>
 #include <string>
-#include <random>
-#include <algorithm>
 #include <boost/mpi/collectives.hpp>
 #include <boost/mpi/communicator.hpp>
 

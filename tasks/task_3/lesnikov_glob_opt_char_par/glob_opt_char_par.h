@@ -3,9 +3,12 @@
 #ifndef TASKS_TASK_3_LESNIKOV_GLOB_OPT_CHAR_PAR_GLOB_OPT_CHAR_PAR_H_
 #define TASKS_TASK_3_LESNIKOV_GLOB_OPT_CHAR_PAR_GLOB_OPT_CHAR_PAR_H_
 
-#include <iostream>
-#include <functional>
 #include <vector>
+#include <string>
+#include <algorithm>
+#include <functional>
+#include <cmath>
+#include <utility>
 
 
 double findM(const std::vector<double>& X, const std::function<double(double)>& f);
