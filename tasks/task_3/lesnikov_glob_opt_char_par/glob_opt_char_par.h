@@ -17,26 +17,4 @@ double getMinParallel(std::function<double(double)> f, double leftBound,
 	double rightBound, double eps, int maxIterations, double r); 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-std::vector<int> getRandomVector(int n);
-std::vector<std::pair<size_t, size_t>> getSequentialMostDifferentElements(std::vector<int> v);
-std::vector<std::pair<size_t, size_t>> getParallelMostDifferentElements(std::vector<int> v, int n);
-
-
 #endif  // TASKS_TASK_3_LESNIKOV_GLOB_OPT_CHAR_PAR_H_
