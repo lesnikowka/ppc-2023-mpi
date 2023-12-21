@@ -7,7 +7,7 @@
 
 
 TEST(lesnikov_glob_opt_sequential, test_func_1) {
-    std::function<double(double)> f = [](double x) {return x / 2 + std::sin(x);};
+    auto f = [](double x) {return x / 2 + std::sin(x);};
 
     double val = getMinSequential(f, 1.5, 6, 0.001, 200, 3);
 
@@ -15,7 +15,7 @@ TEST(lesnikov_glob_opt_sequential, test_func_1) {
 }
 
 TEST(lesnikov_glob_opt_sequential, test_func_2) {
-    std::function<double(double)> f = [](double x) {return x * x;};
+    auto f = [](double x) {return x * x;};
 
     double val = getMinSequential(f, -3, 3, 0.001, 200, 3);
 
@@ -23,7 +23,7 @@ TEST(lesnikov_glob_opt_sequential, test_func_2) {
 }
 
 TEST(lesnikov_glob_opt_sequential, test_func_3) {
-    std::function<double(double)> f = [](double x) {return x / 2 + std::sin(x);};
+    auto f = [](double x) {return x / 2 + std::sin(x);};
 
     double val = getMinSequential(f, 0, 6, 0.001, 200, 3);
 
@@ -31,7 +31,7 @@ TEST(lesnikov_glob_opt_sequential, test_func_3) {
 }
 
 TEST(lesnikov_glob_opt_parallel, test_func_1) {
-    std::function<double(double)> f = [](double x) {return x / 2 + std::sin(x);};
+    auto f = [](double x) {return x / 2 + std::sin(x);};
 
     double val = getMinSequential(f, 1.5, 6, 0.001, 200, 3);
     double val2 = getMinParallel(f, 1.5, 6, 0.001, 200, 3);
@@ -40,7 +40,7 @@ TEST(lesnikov_glob_opt_parallel, test_func_1) {
 }
 
 TEST(lesnikov_glob_opt_parallel, test_func_3) {
-    std::function<double(double)> f = [](double x) {return x / 2 + std::sin(x);};
+    auto f = [](double x) {return x / 2 + std::sin(x);};
 
     double val = getMinSequential(f, 0, 6, 0.001, 200, 3);
     double val2 = getMinSequential(f, 0, 6, 0.001, 200, 3);
