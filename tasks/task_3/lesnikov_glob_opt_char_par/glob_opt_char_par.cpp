@@ -1,3 +1,4 @@
+// Copyright 2023 Lesnikov Nikita
 
 #include "task_3/lesnikov_glob_opt_char_par/glob_opt_char_par.h"
 
@@ -5,7 +6,6 @@
 #include <functional>
 #include <iostream>
 #include <utility>
-#include <cmath>
 #include <vector>
 #include <string>
 #include <random>
@@ -48,8 +48,7 @@ double getXk_1(double xt_1, double xt, double r,
     int sign;
     if (f(xt) - f(xt_1) > 0) {
         sign = 1;
-    }
-    else {
+    } else {
         sign = -1;
     }
 
@@ -87,8 +86,7 @@ double getMinSequential(std::function<double(double)> f, double leftBound,
 
         if (xk_1 < leftBound) {
             xk_1 = leftBound;
-        }
-        else if (xk_1 > rightBound) {
+        } else if (xk_1 > rightBound) {
             xk_1 = rightBound;
         }
 
@@ -160,7 +158,8 @@ double getMinParallel(std::function<double(double)> f, double leftBound,
 
             for (int j = 1; j < usefulWorldSize; j++) {
                 not_end = static_cast<int>(j != usefulWorldSize - 1);
-                std::vector<double> temp(X.begin() + remainder + part_size * j, X.begin() + remainder + part_size * (j + 1) + not_end);
+                std::vector<double> temp(X.begin() + remainder + part_size * j
+                    , X.begin() + remainder + part_size * (j + 1) + not_end);
                 size_t temp_size = temp.size();
                 int dd = 0;
                 world.send(j, 0, temp);
@@ -195,8 +194,7 @@ double getMinParallel(std::function<double(double)> f, double leftBound,
                 world.recv(j, 0, temp_M);
                 M = std::max(M, temp_M);
             }
-        }
-        else {
+        } else {
             world.send(0, 0, loc_M);
         }
 
@@ -216,10 +214,9 @@ double getMinParallel(std::function<double(double)> f, double leftBound,
 
         double maxRValue = 0;
 
-        if (maxRindex < R.size() and maxRindex >= 0) {
+        if (maxRindex < R.size() && maxRindex >= 0) {
             maxRValue = R[maxRindex];
-        }
-        else {
+        } else {
             maxRValue = 0;
         }
 
@@ -241,8 +238,7 @@ double getMinParallel(std::function<double(double)> f, double leftBound,
 
             if (xk_1 < leftBound) {
                 xk_1 = leftBound + 0.01;
-            }
-            else if (xk_1 > rightBound) {
+            } else if (xk_1 > rightBound) {
                 xk_1 = rightBound - 0.01;
             }
 
