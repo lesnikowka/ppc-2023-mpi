@@ -1,6 +1,5 @@
 // Copyright 2023 Lesnikov Nikita
 
-#include <cmath>
 #include <gtest/gtest.h>
 #include <boost/mpi/communicator.hpp>
 #include <boost/mpi/environment.hpp>
