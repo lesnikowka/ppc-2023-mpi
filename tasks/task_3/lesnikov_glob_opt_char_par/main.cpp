@@ -20,7 +20,6 @@ TEST(lesnikov_glob_opt_sequential, test_func_1) {
 TEST(lesnikov_glob_opt_sequential, test_func_2) {
     boost::mpi::communicator world;
     auto f = [](double x) {return x * x;};
-
     double val = getMinSequential(f, -3, 3, 0.001, 200, 3);
 
     if (world.rank() == 0) {
